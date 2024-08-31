@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\ClientController;
 
 // Route pour se connecter
 Route::post('/login', [AuthController::class, 'login']);
@@ -10,6 +12,7 @@ Route::post('/login', [AuthController::class, 'login']);
 // Route protégée
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
+
 });
 
 
@@ -28,7 +31,7 @@ Route::get('v1/users/{id}', function ($id) {
 
 
 
-use App\Http\Controllers\UserController;
+
 
 // Groupe de routes pour les utilisateurs avec préfixe 'api/v1/users' et alias
 Route::prefix('v1/users')->group(function () {
@@ -38,9 +41,9 @@ Route::prefix('v1/users')->group(function () {
     Route::delete('/{id}', [UserController::class, 'destroy'])->name('users.destroy'); 
 });
 
-use App\Http\Controllers\ClientController;
 
-Route::prefix('v1/clients')->group(function () {
+
+Route::prefix('v1/clients')->middleware('auth:api')->group(function () {
     // Route pour obtenir tous les clients
     Route::get('/', [ClientController::class, 'index'])->name('clients.index');
 

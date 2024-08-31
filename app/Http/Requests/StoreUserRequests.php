@@ -34,7 +34,7 @@ class StoreUserRequests extends FormRequest
             'nom' => 'required|string|max:255',
             'prenom' => 'required|string|max:255',
             'login' => 'required|string|max:255|unique:users,login',
-            'role' => ['required', 'exists:roles,role'],
+            'role' => ['nullable', 'exists:roles,role'],
             'password' => ['required', 'confirmed', new CustumPasswordRules()],
         ];
     }
@@ -52,7 +52,7 @@ class StoreUserRequests extends FormRequest
             'login.required' => 'Le login est obligatoire.',
             'login.unique' => 'Cet login est déjà utilisé.',
             'role.required' => 'Le rôle est obligatoire.',
-            'role.in' => 'Le rôle doit être parmi les valeurs autorisées.',
+            // 'role.in' => 'Le rôle doit être parmi les valeurs autorisées.',
             'password.required' => 'Le mot de passe est obligatoire.',
             'password.confirmed' => 'Les mots de passe ne correspondent pas.',
         ];

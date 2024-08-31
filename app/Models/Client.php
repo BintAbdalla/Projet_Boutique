@@ -11,7 +11,7 @@ class Client extends Model
 
     // Attributs que vous pouvez massivement assigner
     protected $fillable = [
-        'surname', 'telephone', 'adresse','user_id',
+        'surname', 'telephone', 'adresse','user_id'
     ];
 
     // Attributs cachés (non retournés par les méthodes toArray() et toJson())

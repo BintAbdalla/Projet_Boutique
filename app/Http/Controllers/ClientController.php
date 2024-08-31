@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\StateEnums;
 use App\Http\Requests\StoreClientRequests;
 use App\Http\Resources\ClientCollection;
 use App\Http\Resources\ClientResource;
@@ -11,9 +12,11 @@ use App\Traits\Responsetrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Exception;
 // use Prettus\Validator\Exceptions\ValidatorException;
 use Spatie\QueryBuilder\QueryBuilder;
+use App\Models\Role; // Importez le modèle Role
 
 
 
@@ -43,25 +46,46 @@ class ClientController extends Controller
     public function store(StoreClientRequests $request)
     {
         try {
-            DB::beginTransaction();
-            $clientRequest =  $request->only('surname','adresse','telephone');
-            $client= Client::create($clientRequest);
-            if ( $request->has('user')){
-                $user = User::create([
+//             $validatedData = $rebc quest->validated();
+// dd($validatedData); // Vérifiez si les données sont bien structurées
+
+
+            //   Assurez-vous que le rôle existe
+        // $role = Role::where("role", $request['role'])->first();
+
+       
+        
+        DB::beginTransaction();
+        $clientRequest =  $request->only('surname','adresse','telephone');
+        // dd($clientRequest);
+        $client= Client::create($clientRequest);
+        // dd($client);
+        
+        // dd($client);
+        if ( $request->has('user')){
+            $role=$request->input('user.role','client');
+            if (!$role) {
+                throw new Exception('Role not found' . $role);
+            }
+            $roledefault=Role::where("role", $role)->first();
+            $user = User::create([
                     'nom' => $request->input('user.nom'),
                     'prenom' => $request->input('user.prenom'),
                     'login' => $request->input('user.login'),
-                    'password' => $request->input('user.password'),
-                    'role' => $request->input('user.role'),
+                    'password' => Hash::make($request->input('user.password')), // Correction ici
+                    'role_id' => $roledefault["id"],
                 ]);
 
                 $user->client()->save($client);
+                
             }
+            // dd($client);
             DB::commit();
-            return $this->sendResponse(new ClientResource($client),);
+            return $this->sendResponse(new ClientResource($client));
+
         }catch (Exception $e){
             DB::rollBack();
-             return $this->sendResponse(new ClientResource($e->getMessage()),);
+           return $this->sendResponse(['error'=>$e->getMessage()],StateEnums::ECHEC);
     }
 
 

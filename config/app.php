@@ -156,6 +156,9 @@ return [
     */
 
     'providers' => ServiceProvider::defaultProviders()->merge([
+
+        Laravel\Passport\PassportServiceProvider::class,
+
         /*
          * Package Service Providers...
          */
@@ -183,6 +186,8 @@ return [
 
     'aliases' => Facade::defaultAliases()->merge([
         // 'Example' => App\Facades\Example::class,
+        'Passport' => Laravel\Passport\Passport::class,
+
     ])->toArray(),
 
 ];

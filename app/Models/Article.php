@@ -18,8 +18,7 @@ class Article extends Model
         'prix',
         'qteStock',
     ];
-
-                                                                                            // Définit les attributs qui doivent être castés en types natifs
+// Définit les attributs qui doivent être castés en types natifs
     protected $casts = [
         'prix' => 'decimal:2',
         'qteStock' => 'integer',

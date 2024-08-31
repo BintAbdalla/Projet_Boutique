@@ -40,19 +40,12 @@ class StoreClientRequests extends FormRequest
             'user.nom' => ['required_with:user','string'],
             'user.prenom' => ['required_with:user','string'],
             'user.login' => ['required_with:user','string'],
-            'user.role' => ['required_with:user', 'in:' . implode(',', array_column(RoleEnums::cases(), 'value'))],
+            'user.role' => ['nullable', 'exists:roles,role'],
             'user.password' => ['required_with:user', new CustumPasswordRules(),'confirmed'],
 
         ];
 /*
-        if ($this->filled('user')) {
-            $userRules = (new StoreUserRequest())->Rules();
-            $rules = array_merge($rules, ['user' => 'array']);
-            $rules = array_merge($rules, array_combine(
-                array_map(fn($key) => "user.$key", array_keys($userRules)),
-                $userRules
-            ));
-        }
+        
 */
       //  dd($rules);
 
@@ -71,3 +64,12 @@ class StoreClientRequests extends FormRequest
         throw new HttpResponseException($this->sendResponse($validator->errors(),StateEnums::ECHEC,404));
     }
 }
+
+// if ($this->filled('user')) {
+//     $userRules = (new StoreUserRequest())->Rules();
+//     $rules = array_merge($rules, ['user' => 'array']);
+//     $rules = array_merge($rules, array_combine(
+//         array_map(fn($key) => "user.$key", array_keys($userRules)),
+//         $userRules
+//     ));
+// }
