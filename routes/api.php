@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\ArticleController;
 
 // Route pour se connecter
 Route::post('/login', [AuthController::class, 'login']);
@@ -58,4 +59,30 @@ Route::prefix('v1/clients')->middleware('auth:api')->group(function () {
 
     // Route pour supprimer un client spécifique par ID
     Route::delete('/{id}', [ClientController::class, 'destroy'])->name('clients.destroy');
+});
+
+Route::prefix('v1/articles')->middleware('auth:api')->group(function (){
+    // Route pour créer un nouvel article
+    Route::post('/', [ArticleController::class,'store'])->name('articles.store');
+
+    // Route pour obtenir tous les articles
+    Route::get('/', [ArticleController::class,'show'])->name('articles.show');
+
+    // Route pour obtenir les articles disponibles en fonction d'une disponibilité (oui/non)
+    Route::get('/disponibles', [ArticleController::class,'index'])->name('articles.disponibles');
+
+    // Route pour obtenir un article spécifique par ID
+    Route::get('/{id}', [ArticleController::class,'viewArticleById'])->name('articles.viewById');
+
+    // Route pour obtenir un article spécifique par libellé (POST)
+    Route::post('/libelle', [ArticleController::class,'viewArticleByLibelle'])->name('articles.viewByLibelle');
+
+    // Route pour mettre à jour un article spécifique par ID
+    Route::patch('/{id}', [ArticleController::class,'updateArticleById'])->name('articles.updateById');
+
+    // Route pour mettre à jour un article spécifique par stock (POST)
+    Route::post('/stock', [ArticleController::class,'updateArticleByStock'])->name('articles.updateByStock');
+
+    // // Route pour supprimer un article spécifique par ID
+    Route::delete('/{id}', [ArticleController::class,'destroy'])->name('articles.destroy');
 });

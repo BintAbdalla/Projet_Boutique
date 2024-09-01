@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Article extends Model
 {
-    use HasFactory;
+    use HasFactory,SoftDeletes;
+
 
     // Indique la table associée au modèle (optionnel si le nom de la table suit la convention Laravel)
     protected $table = 'articles';
@@ -29,5 +31,5 @@ class Article extends Model
         'updated_at',
     ];
     
-   
+    protected $dates = ['deleted_at']; // Ajoute la date de suppression à la liste des dates
 }
