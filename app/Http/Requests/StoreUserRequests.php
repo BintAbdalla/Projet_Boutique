@@ -3,12 +3,14 @@ namespace App\Http\Requests;
 
 use App\Enums\StateEnums;
 use App\Enums\RoleEnums;
+use App\Enums\EtatEnums;
 use App\Rules\CustumPasswordRules;
 use App\Traits\Responsetrait;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
+
 
 
 class StoreUserRequests extends FormRequest
@@ -36,6 +38,9 @@ class StoreUserRequests extends FormRequest
             'login' => 'required|string|max:255|unique:users,login',
             'role' => ['nullable', 'exists:roles,role'],
             'password' => ['required', 'confirmed', new CustumPasswordRules()],
+            'etat' => ['required', 'in:' . implode(',', EtatEnums::values())],
+            'client_id' => ['nullable', 'exists:clients,id'], // Assurez-vous que ce champ est nullable
+
         ];
     }
 
@@ -52,9 +57,11 @@ class StoreUserRequests extends FormRequest
             'login.required' => 'Le login est obligatoire.',
             'login.unique' => 'Cet login est déjà utilisé.',
             'role.required' => 'Le rôle est obligatoire.',
+            'etat.required' => 'L\'etat est obligatoire.',
             // 'role.in' => 'Le rôle doit être parmi les valeurs autorisées.',
             'password.required' => 'Le mot de passe est obligatoire.',
             'password.confirmed' => 'Les mots de passe ne correspondent pas.',
+            
         ];
     }
 

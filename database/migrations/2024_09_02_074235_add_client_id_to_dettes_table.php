@@ -11,14 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('dettes', function (Blueprint $table) {
-            $table->id();
-            $table->date('date');
-            $table->decimal('montant', 10, 2);
-            $table->decimal('montant_du', 10, 2);
-            $table->decimal('montant_restant', 10, 2);
-            $table->timestamps();
+        Schema::table('dettes', function (Blueprint $table) {
+            $table->unsignedBigInteger('client_id')->default(1);; // Ajouter la colonne client_id
 
+            // Définir client_id comme clé étrangère
+            $table->foreign('client_id')->references('id')->on('clients')->onDelete('cascade');
         });
     }
 
@@ -28,10 +25,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('dettes', function (Blueprint $table) {
-            // Supprimer la clé étrangère avant de supprimer la table
+            // Supprimer la clé étrangère et la colonne
             $table->dropForeign(['client_id']);
+            $table->dropColumn('client_id');
         });
-
-        Schema::dropIfExists('dettes');
     }
 };

@@ -9,6 +9,8 @@ use App\Enums\UserRole; // Assurez-vous que l'énumération est importée
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 // use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Passport\HasApiTokens;
+// use Tymon\JWTAuth\Contracts\JWTSubject;
+
 
 
  
@@ -19,6 +21,10 @@ class User extends Authenticatable
     use HasApiTokens, Notifiable;
     use HasFactory;
     /**
+     * 
+     * 
+     * 
+     * 
      * Les attributs qui peuvent être assignés en masse.
      *
      * @var array
@@ -39,8 +45,8 @@ class User extends Authenticatable
      */
     protected $hidden = [
         'password',
-        'createAd',
-        'updateAd',
+        'create_at',
+        'update_at',
     ];
 
     /**
@@ -63,6 +69,7 @@ class User extends Authenticatable
         ['id'] 
     ];
 
+
     /**
      * Les attributs qui doivent être traités comme des dates.
      *
@@ -76,7 +83,7 @@ class User extends Authenticatable
 
     public function client()
     {
-        return $this->hasOne(Client::class); 
+        return $this->hasOne(Client::class, 'client_id'); 
     }
 
     public function role()

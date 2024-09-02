@@ -12,7 +12,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        if (!Schema::hasTable('users')) { Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('nom')->nullable(false); 
             $table->string('prenom')->nullable(false); 
@@ -22,7 +22,7 @@ return new class extends Migration
             $table->timestamps();
         });
     }
-
+    }
     public function down(): void
     {
         Schema::dropIfExists('users');
