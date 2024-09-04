@@ -39,7 +39,8 @@ class StoreUserRequests extends FormRequest
             'role' => ['nullable', 'exists:roles,role'],
             'password' => ['required', 'confirmed', new CustumPasswordRules()],
             'etat' => ['required', 'in:' . implode(',', EtatEnums::values())],
-            'client_id' => ['nullable', 'exists:clients,id'], // Assurez-vous que ce champ est nullable
+            'client_id' => ['nullable', 'exists:clients,id'],
+            'filename' => 'required|file|mimes:jpg,jpeg,png',
 
         ];
     }
@@ -61,7 +62,7 @@ class StoreUserRequests extends FormRequest
             // 'role.in' => 'Le rôle doit être parmi les valeurs autorisées.',
             'password.required' => 'Le mot de passe est obligatoire.',
             'password.confirmed' => 'Les mots de passe ne correspondent pas.',
-            
+            'photo' => 'nullable|image' // Assurez-vous que 'photo' est une image
         ];
     }
 

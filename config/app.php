@@ -158,6 +158,7 @@ return [
     'providers' => ServiceProvider::defaultProviders()->merge([
 
         Laravel\Passport\PassportServiceProvider::class,
+        CloudinaryLabs\CloudinaryLaravel\CloudinaryServiceProvider::class,
 
         /*
          * Package Service Providers...
@@ -187,6 +188,7 @@ return [
     'aliases' => Facade::defaultAliases()->merge([
         // 'Example' => App\Facades\Example::class,
         'Passport' => Laravel\Passport\Passport::class,
+        'Cloudinary' => CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary::class,
 
     ])->toArray(),
 

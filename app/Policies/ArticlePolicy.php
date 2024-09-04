@@ -3,15 +3,18 @@ namespace App\Policies;
 
 use App\Models\User;
 use App\Enums\RoleEnums;
+use Illuminate\Auth\Access\HandlesAuthorization;
 
 class ArticlePolicy
 {
+
+    use HandlesAuthorization;
     /**
      * Détermine si l'utilisateur peut voir l'article.
      */
     public function view(User $user): bool
     {
-        return $user->role === RoleEnums::BOUTIQUIER->value;
+        return $user->role->role === RoleEnums::BOUTIQUIER->value;
     }
 
     /**
@@ -19,7 +22,8 @@ class ArticlePolicy
      */
     public function create(User $user): bool
     {
-        return $user->role === RoleEnums::BOUTIQUIER->value;
+        // dd($user->role->role);
+        return $user->role->role === RoleEnums::BOUTIQUIER->value;
     }
 
     /**
@@ -27,7 +31,7 @@ class ArticlePolicy
      */
     public function update(User $user): bool
     {
-        return $user->role === RoleEnums::BOUTIQUIER->value;
+        return $user->role->role === RoleEnums::BOUTIQUIER->value;
     }
 
     /**
@@ -35,6 +39,6 @@ class ArticlePolicy
      */
     public function delete(User $user): bool
     {
-        return $user->role === RoleEnums::BOUTIQUIER->value;
+        return $user->role->role === RoleEnums::BOUTIQUIER->value;
     }
 }

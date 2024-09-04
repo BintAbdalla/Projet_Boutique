@@ -1,195 +1,132 @@
 <?php
 
- namespace App\Http\Controllers;
+namespace App\Http\Controllers;
 
- use App\Enums\StateEnums;
- use App\Http\Requests\StoreClientRequests;
+use App\Enums\StateEnums;
+use App\Http\Requests\StoreClientRequests;
 use App\Http\Resources\ClientCollection;
- use App\Http\Resources\ClientResource;
- use App\Models\Client;
- use App\Models\User;
- use App\Traits\Responsetrait;
+use App\Http\Resources\ClientResource;
+use App\Models\Client;
+use App\Models\User;
+use App\Traits\Responsetrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
- use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Exception;
 use Prettus\Validator\Exceptions\ValidatorException;
- use Spatie\QueryBuilder\QueryBuilder;
+use Spatie\QueryBuilder\QueryBuilder;
 use App\Models\Role; // Importez le modèle Role
 use App\Models\Dettes;
+use App\Services\ClientService;
+use App\Exceptions\ExceptionService;
 
 
 
- class ClientController extends Controller
- {
+class ClientController extends Controller
+{
     use Responsetrait;
-//     /**
-//      * Display a listing of the resource.
-//      */
-    public function index(Request $request)
-    {
-      //  return Client::whereNotNull('user_id')->get();
-         $include = $request->has('include')?  [$request->input('include')] : [];
+    //     /**
+    //      * Display a listing of the resource.
+    //      */
+    protected $clientService;
 
-         $data = Client::with($include)->whereNotNull('user_id')->get();
-     
-        $clients = QueryBuilder::for(Client::class)
-            ->allowedFilters(['surname'])
-            ->allowedIncludes(['user'])
-            ->get();
-       return new ClientCollection($clients);
+    protected $exceptionService;
+
+    public function __construct(ClientService $clientService, ExceptionService $exceptionService)
+    {
+        $this->clientService = $clientService;
+        $this->exceptionService = $exceptionService;
     }
 
-//     /**
-//      * Store a newly created resource in storage.
-//      */
-     public function store(StoreClientRequests $request)
-    
+    public function index(Request $request)
     {
-       $this->authorize('create', Client::class);
         try {
-// //             $validatedData = $rebc quest->validated();
-// // dd($validatedData); // Vérifiez si les données sont bien structurées
+            $include = $request->has('include') ? [$request->input('include')] : [];
+            $clients = $this->clientService->index($include);
 
+            // Retourner une réponse qui sera formatée par le middleware
+            return $this->sendResponse($clients, StateEnums::SUCCESS, 'Clients récupérés avec succès');
+        } catch (ExceptionService $e) {
+            // Retourner une réponse d'erreur qui sera formatée par le middleware
+            $formattedError = [
+                'error' => $this->exceptionService->handleException($e),
+            ];
 
-//             //   Assurez-vous que le rôle existe
-             $role = Role::where("role", $request['role'])->first();
+            // Retourner une réponse qui sera formatée par le middleware
+            return $this->sendResponse($formattedError, StateEnums::ECHEC, 'Une erreur est survenue', 500);
+        }
+    }
 
-       
-        
-     DB::beginTransaction();
-         $clientRequest =  $request->only('surname','adresse','telephone');
-          dd($clientRequest);
-         $client= Client::create($clientRequest);
-//         // dd($client);
-        
-//         // dd($client);
-         if ( $request->has('user')){
-             $role=$request->input('user.role','client');
-             if (!$role) {
-                 throw new Exception('Role not found' . $role);
-             }
-             $roledefault=Role::where("role", $role)->first();
-             $user = User::create([
-                     'nom' => $request->input('user.nom'),
-                     'prenom' => $request->input('user.prenom'),
-                     'login' => $request->input('user.login'),
-                     'password' => Hash::make($request->input('user.password')), 
-                     'role_id' => $roledefault["id"],
-                 ]);
+    public function store(StoreClientRequests $request)
 
-                 $user->client()->save($client);
-                
-          }
-//             // dd($client);
-        DB::commit();
-          return $this->sendResponse(new ClientResource($client));
+    {
+        // $this->authorize('create', Client::class);
 
-       }catch (Exception $e){
-           DB::rollBack();
-          return $this->sendResponse(['error'=>$e->getMessage()],StateEnums::ECHEC);}
-    
+        try {
+            $clientData = $request->only('surname', 'adresse', 'telephone');
+            $userData = $request->has('users') ? $request->input('users') : null;
 
-       }
-    
+            // Ajouter le rôle du client à clientData si nécessaire
+            if ($userData && isset($userData['role'])) {
+                $userData['role'];
+            }
 
-//     /**
-//      * Display the specified resource.
-//      */
+            $client = $this->clientService->store($clientData, $userData);
+
+            return $this->sendResponse(new ClientResource($client), StateEnums::SUCCESS, 'Client créé avec succès');
+        } catch (ExceptionService $e) {
+            // Utiliser le service d'exception pour gérer l'erreur
+            $formattedError = $this->exceptionService->handleException($e);
+
+            // Retourner une réponse formatée
+            return $this->sendResponse($formattedError, StateEnums::ECHEC);
+        }
+    }
+
     public function filterByTelephone(Request $request)
-     {
-//         // Récupère le numéro de téléphone depuis la requête
-      $telephone = $request->input('telephone');
+    {
+        try {
+            $telephone = $request->input('telephone');
+            $clients = $this->clientService->filterByTelephone($telephone);
 
-//         // Vérifie si le téléphone est fourni
-      if (empty($telephone)) {
-           return response()->json([
-               'status' => 'error',
-                'message' => 'Le numéro de téléphone est requis.',
-             ], 422);
-         }
-
-//         // Rechercher les clients par numéro de téléphone en utilisant le Query Builder
-      $clients = DB::table('clients')
-           ->where('telephone', $telephone)
-          ->get();
-
-//         // Retourner les clients trouvés
-        return response()->json([
-           'status' => 'success',
-           'data' => $clients,
-           'message' => $clients->isEmpty() ? 'Aucun client trouvé pour ce numéro de téléphone.' : 'Clients récupérés avec succès.',
-       ], 200);
-   }
-
-   
-
-//         /**
-//          * Récupère les dettes d'un client spécifique.
-//          */
-        
-        public function getDettes(Request $request, $id)
-        {
-            // Récupérer les dettes du client avec l'ID donné
-            $dettes = Dettes::where('client_id', $id)->get();
-    
-           // Vérifiez si des dettes existent pour le client
-            if ($dettes->isEmpty()) {
-               return response()->json([
-                   'message' => 'Aucune dette trouvée pour ce client.'
-                ], 404);  
-
-                }
-    
-//             // Retourner les dettes dans une réponse JSON
-   return response()->json([
-                 'client_id' => $id,
-                 'dettes' => $dettes
-             ], 200);
-       
-     }
-
-         public function show($id,$client)
-         {
-
-             $this->authorize('view', $client);
-             $client = Client::find($id);
-    
-             if (!$client) {
-                 return response()->json([
-                     'message' => 'Client non trouvé.'
-                 ], 404);
-             }
-    
-             return response()->json($client, 200);
-         }
+            return $this->sendResponse($clients, StateEnums::SUCCESS, 'Clients récupérés avec succès.');
+        } catch (ExceptionService $e) {
+            return $this->sendResponse(['error' => $e->getMessage()], StateEnums::ECHEC, 'error', $e->getCode());
+        }
+    }
 
 
 
-       public function getUserForClient($id)
-       {
-            // Récupérer le client avec l'utilisateur associé
-            $client = Client::with('user')->find($id);
-        
-             // Vérifiez si le client existe
-             if (!$client) {
-                 return response()->json([
-                     'message' => 'Client non trouvé.'
-                 ], 404);
-             }
-        
-             // Retourner l'utilisateur du client
-             return response()->json([
-                 'client_id' => $client->id,
-                 'user' => $client->user
-             ], 200);
-         }
-        
+    public function show($id, Request $request)
+    {
+        try {
+            $client = $this->clientService->show($id);
+            return $this->sendResponse($client, StateEnums::SUCCESS, 'Client récupéré avec succès.');
+        } catch (ExceptionService $e) {
+            return $this->sendResponse(['error' => $e->getMessage()], StateEnums::ECHEC, 'error', $e->getCode());
+        }
+    }
 
 
 
-  }
-    
+    public function getUserForClient($id)
+    {
+        try {
+            $clientData = $this->clientService->getUserForClient($id);
+            return $this->sendResponse($clientData);
+        } catch (ExceptionService $e) {
+            return $this->sendResponse(['error' => $e->getMessage()], $e->getCode());
+        }
+    }
 
-
+    public function getDettes(Request $request, $id)
+    {
+        try {
+            $detteData = $this->clientService->getDettes($id);
+            return $this->sendResponse($detteData,StateEnums::SUCCESS);
+        } catch (Exception $e) {
+            return $this->sendResponse(['error' => $e->getMessage()], StateEnums::ECHEC, $e->getCode());
+        }
+    }
+}

@@ -14,7 +14,7 @@ class ClientPolicy
     public function view(User $user, Client $client): bool
     {
         // Vérifiez si l'utilisateur peut voir le client
-        return $user->role === RoleEnums::BOUTIQUIER->value;
+        return $user->role->role === RoleEnums::BOUTIQUIER->value;
     }
     
 
@@ -23,7 +23,9 @@ class ClientPolicy
      */
     public function create(User $user): bool
     {
-        return $user->role === RoleEnums::BOUTIQUIER->value;
+        // $user->load('role');
+        // dd($user->role->role);
+        return $user->role->role  === RoleEnums::BOUTIQUIER->value;
     }
 
     /**
@@ -31,7 +33,7 @@ class ClientPolicy
      */
     public function update(User $user, Client $client): bool
     {
-        return $user->role === RoleEnums::BOUTIQUIER->value;
+        return $user->role->role  === RoleEnums::BOUTIQUIER->value;
     }
 
     /**
@@ -39,6 +41,6 @@ class ClientPolicy
      */
     public function delete(User $user, Client $client): bool
     {
-        return $user->role === RoleEnums::BOUTIQUIER->value;
+        return $user->role->role  === RoleEnums::BOUTIQUIER->value;
     }
 }

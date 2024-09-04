@@ -8,6 +8,7 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\DetteController;
 
+
 // Route pour se connecter
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 // Route::get('/login', [AuthController::class, 'login'])->name('login');

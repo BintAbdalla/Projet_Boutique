@@ -8,9 +8,20 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use Laravel\Passport\Passport;
+use App\Services\AuthServiceInterface;
+
 
 class AuthController extends Controller
+
 {
+    protected $var;
+
+    public function __construct(AuthServiceInterface $authService)
+    {
+        $this->var = $authService;
+    }
+
+
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -22,15 +33,18 @@ class AuthController extends Controller
             return response()->json(['error' => 'Validation failed', 'errors' => $validator->errors()->toArray()], 422);
         }
 
-        $user = User::where('login', $request->login)->first();
+        // $user = User::where('login', $request->login)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
+        // if (!$user || !Hash::check($request->password, $user->password)) {
+        //     return response()->json(['error' => 'Unauthorized'], 401);
+        // }
 
-        $token = $user->createToken('Personal Access Token')->accessToken;
-     
 
-        return response()->json(['token' => $token], 200);
+        $login = $request->only(['login', 'password']);
+
+        // $token = $user->createToken('Personal Access Token')->accessToken;
+        return $this->var->login($login);
+
+        // return response()->json(['token' => $token], 200);
     }
 }

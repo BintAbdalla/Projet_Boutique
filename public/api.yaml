@@ -30,6 +30,12 @@ paths:
                 password:
                   type: string
                   example: "Password123!"
+                nom:
+                  type: string
+                  example: "Terence"
+                prenom:
+                  type: string
+                  example: "Rene"
       responses:
         "200":
           description: Connexion réussie.
@@ -67,6 +73,8 @@ paths:
   /api/v1/users:
     post:
       summary: Inscription d'un nouvel utilisateur
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:

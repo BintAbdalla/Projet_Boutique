@@ -9,11 +9,12 @@ use App\Enums\UserRole; // Assurez-vous que l'énumération est importée
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 // use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Passport\HasApiTokens;
+// use Laravel\Passport\HasApiTokens;
 // use Tymon\JWTAuth\Contracts\JWTSubject;
 
 
 
- 
+
 
 
 class User extends Authenticatable
@@ -34,8 +35,9 @@ class User extends Authenticatable
         'prenom',
         'login',
         'password',
-        'role_id'
-      
+        'role_id',
+        'filename'
+
     ];
 
     /**
@@ -57,7 +59,7 @@ class User extends Authenticatable
     protected $casts = [
         'created_at',
         'updated_at',
-       
+
     ];
 
     /**
@@ -66,7 +68,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $guarded = [
-        ['id'] 
+        ['id']
     ];
 
 
@@ -78,17 +80,16 @@ class User extends Authenticatable
     protected $dates = [
         'created_at',
         'updated_at',
-       
+
     ];
 
     public function client()
     {
-        return $this->hasOne(Client::class, 'client_id'); 
+        return $this->hasOne(Client::class, 'user_id');
     }
 
     public function role()
-{
-    return $this->belongsTo(Role::class);
-}
-
+    {
+        return $this->belongsTo(Role::class);
+    }
 }

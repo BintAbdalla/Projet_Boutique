@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Scopes\TelephoneScope;
 
 class Client extends Model
 {
@@ -11,7 +12,7 @@ class Client extends Model
 
     // Attributs que vous pouvez massivement assigner
     protected $fillable = [
-        'surname', 'telephone', 'adresse','user_id'
+        'surname', 'telephone', 'adresse','user_id','qr_code'
     ];
 
     // Attributs cachés (non retournés par les méthodes toArray() et toJson())
@@ -29,11 +30,14 @@ class Client extends Model
     protected $guarded = [
         // Exemple : 'id' ou d'autres attributs que vous ne voulez pas assigner massivement
     ];
-
+    protected static function booted()
+    {
+        static::addGlobalScope(new TelephoneScope);
+    }
     
     public function user()
     {
-        return $this->belongsTo(User::class, 'client_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
   
