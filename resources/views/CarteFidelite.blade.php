@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +12,7 @@
             margin: 0;
             padding: 0;
         }
+
         body {
             height: 100vh;
             width: 100vw;
@@ -21,12 +23,13 @@
             justify-content: center;
             align-items: center;
         }
+
         .card {
             width: 350px;
             height: 520px;
             background-color: #fff;
             border-radius: 7px;
-            box-shadow: 0 0 50px rgba(0,0,0,0.1);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.1);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -34,6 +37,7 @@
             overflow: hidden;
             align-items: center;
         }
+
         #pattern1 {
             width: 160%;
             height: 75%;
@@ -42,6 +46,7 @@
             top: -20%;
             left: 17%;
         }
+
         #pattern2 {
             width: 100%;
             height: 35%;
@@ -50,6 +55,7 @@
             top: -8%;
             object-fit: cover;
         }
+
         span {
             font-size: 25px;
             color: #be53fc;
@@ -57,6 +63,7 @@
             position: absolute;
             top: 7%;
         }
+
         .avatar {
             width: 134px;
             height: 134px;
@@ -70,11 +77,13 @@
             display: flex;
             justify-content: center;
         }
+
         .avatar img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
+
         .qr-code {
             width: 160px;
             height: 160px;
@@ -91,10 +100,11 @@
             font-size: 16px;
             border-radius: 8px;
             padding: 10px;
-            box-shadow: 0 0 25px rgba(0,0,0,0.1);
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.1);
             cursor: pointer;
             transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
+
         .qr-code img {
             width: 100%;
             height: 100%;
@@ -103,6 +113,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Carte de fidélité -->
     <div class="card">
@@ -111,12 +122,14 @@
         <!-- Titre de la carte -->
         <span>Carte De Fidélité</span>
         <div class="avatar">
-            <img src="/assets/seydiop07.jpeg" alt="Profile photo of Seydina Mouhammad Diop">
+            <img src="{{$photoPath}}" alt="Profile photo of Seydina Mouhammad Diop">
         </div>
-        <span style="top: 45%; font-size: 20px; font-weight: 600; color: #404040;">Seydina Mouhammad Diop</span>
+        <span style="top: 45%; font-size: 20px; font-weight: 600; color: #404040;">Aissata Diop</span>
         <div class="qr-code">
-            <img src="/assets/qr_download.png" alt="">
+            <!-- <img src="/var/www/html/Projet_Boutique/public/qrcodes" alt=""> -->
+            <img src="{{$qrCodePath}}" alt="">
         </div>
     </div>
 </body>
+
 </html>

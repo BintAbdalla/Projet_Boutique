@@ -9,10 +9,12 @@ use App\Enums\UserRole; // Assurez-vous que l'énumération est importée
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 // use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Passport\HasApiTokens;
+use App\Jobs\UploadJob;
 // use Laravel\Passport\HasApiTokens;
 // use Tymon\JWTAuth\Contracts\JWTSubject;
 
 
+// use App\Models\User;
 
 
 
@@ -21,6 +23,11 @@ class User extends Authenticatable
 {
     use HasApiTokens, Notifiable;
     use HasFactory;
+    // $user = User::find(1); // ou tout autre initialisation de l'utilisateur
+
+    // if ($user) {
+    //     UploadJobJob::dispatch($user);
+    // }
     /**
      * 
      * 
@@ -37,7 +44,7 @@ class User extends Authenticatable
         'password',
         'role_id',
         'filename'
-
+        
     ];
 
     /**
@@ -59,9 +66,9 @@ class User extends Authenticatable
     protected $casts = [
         'created_at',
         'updated_at',
-
+        
     ];
-
+    
     /**
      * Les attributs qui ne peuvent pas être assignés en masse.
      *
@@ -70,8 +77,8 @@ class User extends Authenticatable
     protected $guarded = [
         ['id']
     ];
-
-
+    
+    
     /**
      * Les attributs qui doivent être traités comme des dates.
      *
@@ -80,16 +87,17 @@ class User extends Authenticatable
     protected $dates = [
         'created_at',
         'updated_at',
-
+        
     ];
-
+    
     public function client()
     {
         return $this->hasOne(Client::class, 'user_id');
     }
-
+    
     public function role()
     {
         return $this->belongsTo(Role::class);
     }
+    
 }

@@ -9,11 +9,13 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use Laravel\Passport\Passport;
 use App\Services\AuthServiceInterface;
+use App\Traits\Responsetrait;
 
 
 class AuthController extends Controller
 
 {
+    use Responsetrait;
     protected $var;
 
     public function __construct(AuthServiceInterface $authService)

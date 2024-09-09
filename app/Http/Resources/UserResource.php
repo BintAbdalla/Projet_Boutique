@@ -14,6 +14,15 @@ class UserResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id' => $this->id,
+            'nom' => $this->nom,
+            'prenom' => $this->prenom,
+            'login' => $this->login,
+            'role' => $this->role->role ?? 'Non défini', // Exemple pour inclure une relation
+            'etat' => $this->etat,
+            'filename' => $this->filename ? asset('storage/photos/' . $this->filename) : null, // Formater le chemin de la photo
+         
+        ];
     }
 }

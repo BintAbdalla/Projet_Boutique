@@ -159,6 +159,7 @@ return [
 
         Laravel\Passport\PassportServiceProvider::class,
         CloudinaryLabs\CloudinaryLaravel\CloudinaryServiceProvider::class,
+        Barryvdh\DomPDF\ServiceProvider::class,
 
         /*
          * Package Service Providers...
@@ -189,6 +190,8 @@ return [
         // 'Example' => App\Facades\Example::class,
         'Passport' => Laravel\Passport\Passport::class,
         'Cloudinary' => CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary::class,
+        'PDF' => Barryvdh\DomPDF\Facade\Pdf::class,
+
 
     ])->toArray(),
 

@@ -41,36 +41,38 @@ Route::prefix('v1/users')->middleware('auth:api')->group(function () {
     Route::post('/', [UserController::class, 'create'])->name('users.create');
     Route::get('/{id}', [UserController::class, 'show'])->name('users.show');
     Route::put('/{id}', [UserController::class, 'update'])->name('users.update');
-    Route::patch('/{id}', [UserController::class, 'update'])->name('users.updates');
-    Route::delete('/{id}', [UserController::class, 'destroy'])->name('users.destroy');
-    // Route pour créer un utilisateur associé à un client existant
     Route::delete('/{Id}/users', [UserController::class, 'createUserForClient'])->name('Users.create');
     Route::get('/', [UserController::class, 'filterUsersByRole'])->name('Users.filterUsersByRole');
     Route::get('/', [UserController::class, 'filterUsersByRoleAndState'])->name('Users.filterUsersByRoleAndState');
     Route::get('/', [UserController::class, 'filterUsersByRoleAndState'])->name('Users.filterUsersByRoleAndState');
+    Route::patch('/{id}', [UserController::class, 'update'])->name('users.updates');
+    Route::delete('/{id}', [UserController::class, 'destroy'])->name('users.destroy');
+    // Route pour créer un utilisateur associé à un client existant
 });
 
 
 
 
 Route::prefix('v1/clients')->middleware('auth:api')->group(function () {
+// Route pour créer un nouveau client
+Route::post('/', [ClientController::class, 'store'])->name('clients.store');
+    Route::post('/{id}/generate-qrcode', [ClientController::class, 'generateAndSaveQRCode']);
+    Route::get('/{id}/qrcode', [ClientController::class, 'showQRCode']);
     // Route pour obtenir tous les clients
     Route::get('/', [ClientController::class, 'index'])->name('clients.index');
-
+    
     // Route pour obtenir un client spécifique par ID
     Route::get('/{id}', [ClientController::class, 'show'])->name('clients.show');
-
-    // Route pour créer un nouveau client
-    Route::post('/', [ClientController::class, 'store'])->name('clients.store');
-
+    
+    
     // Route pour mettre à jour un client spécifique par ID (PUT ou PATCH)
     Route::match(['put', 'patch'], '/{id}', [ClientController::class, 'update'])->name('clients.update');
-
+    
     // Route pour supprimer un client spécifique par ID
     Route::delete('/{id}', [ClientController::class, 'destroy'])->name('clients.destroy');
     // Route pour créer un utilisateur associé à un client existant
     // Route::post('/{Id}/users', [UserController::class, 'createUserForClient']);
-
+    
     Route::post('/telephone', [ClientController::class, 'filterByTelephone']);
     Route::post('/{id}/dettes', [ClientController::class, 'getDettes'])->name('clients.dettes');
     Route::post('/{id}/user', [ClientController::class, 'getUserForClient'])->name('clients.user');

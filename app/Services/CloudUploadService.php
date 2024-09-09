@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use Cloudinary\Cloudinary;
-use Cloudinary\Transformation\Transformation;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+
 
 class CloudUploadService
 {
@@ -33,26 +33,9 @@ class CloudUploadService
             // Retourner l'URL du fichier
             return $upload['secure_url'];
         } catch (\Exception $e) {
-            // En cas d'échec, stocker localement
-            return $this->storeLocally($file);
+            // Log l'erreur
+            Log::error('Erreur lors de l\'upload sur Cloudinary : ' . $e->getMessage());
+            throw $e; // Propager l'erreur pour que le Job puisse la gérer
         }
-    }
-
-    /**
-     * Stocke le fichier localement et retourne son URL.
-     *
-     * @param  UploadedFile  $file
-     * @return string
-     */
-    protected function storeLocally(UploadedFile $file): string
-    {
-        // Nom du fichier
-        $fileName = time() . '.' . $file->getClientOriginalExtension();
-
-        // Stockage du fichier
-        $path = $file->storeAs('photos', $fileName, 'public');
-
-        // Retourner l'URL du fichier local
-        return Storage::url($path);
     }
 }

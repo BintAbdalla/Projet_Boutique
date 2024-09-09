@@ -10,9 +10,13 @@ use Illuminate\Support\Facades\Hash;
 use App\Traits\Responsetrait;
 use Illuminate\Http\Request;
 use App\Models\Client;
-use App\Services\UploadService; 
+use App\Services\UploadService;
 use Illuminate\Support\Facades\Storage;
 use App\Services\CloudUploadService;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Pagination\Paginator;
+
+use App\Jobs\PhotoJob; // Assuming PhotoJob is defined in your app's Jobs folder
 
 
 use function Laravel\Prompts\password;
@@ -32,39 +36,51 @@ class UserController extends Controller
 
     public function create(StoreUserRequests $request)
     {
-
-        // dd($request->validated());
-        $validated=$request->validated();
+        // Valider les données
+        $validated = $request->validated();
+        
         // Assurez-vous que le rôle existe
         $role = null;
-        if ($validated['role']) {
+        if (!empty($validated['role'])) {
             $role = Role::where("role", $validated['role'])->first();
             if (!$role) {
                 return $this->errorResponse([], 'Le rôle sélectionné est invalide.', 422);
             }
         }
-    
-        // Traiter la photo
-        $photoUrl = null;
-        if ($request->hasFile('filename')) {
-            $photoUrl = $this->CloudUploadService->uploadAndGetUrl($request->file('filename'));
-        }
-    
-        // Créer l'utilisateur
+        
+        // Créer l'utilisateur sans la photo pour l'instant
         $user = User::create([
             'nom' => $validated['nom'],
             'prenom' => $validated['prenom'],
             'login' => $validated['login'],
             'password' => Hash::make($validated['password']),
-            'role_id' => $role ["id"],
+            'role_id' => $role ? $role->id : null,
             'etat' => $validated['etat'],
-            'filename' => $photoUrl,
+            // La photo sera ajoutée plus tard via le Job
+            'filename' => null,
         ]);
     
-        return response()->json($user, 201);
+        // Vérifiez si un fichier photo est présent
+        if ($request->hasFile('filename')) {
+            $file = $request->file('filename');
     
+            // Déboguer les informations du fichier
+            // dd($file);
+    
+            // Sauvegarder le fichier localement dans un répertoire temporaire
+            $filePath = $file->storeAs('temp_photos', $file->getClientOriginalName(), 'public');
+            
+            // Vérifiez si le fichier a été bien sauvegardé
+            // dd($filePath);
+    // 
+            // Déclenchement du Job avec le chemin du fichier et l'ID de l'utilisateur
+            PhotoJob::dispatch($filePath, $user->id);
+    
+        }
+    
+        // Retourner l'utilisateur créé
+        return response()->json($user, 201);
     }
-        
     
     public function createUserForClient(StoreUserRequests $request, $Id)
     {
@@ -112,24 +128,39 @@ class UserController extends Controller
 
     public function update(StoreUserRequests $request, User $user)
     {
+        // Valider les données du formulaire
         $validated = $request->validated();
-
+    
+        // Vérifier si le rôle est défini et valide
         if (isset($validated['role'])) {
             $role = Role::find($validated['role']);
             if (!$role) {
-                return $this->errorResponse([], 'Le rôle sélectionné est invalide.', 422);
+                return $this->sendResponse(null, StateEnums::ECHEC, 'Le rôle sélectionné est invalide.', 422);
             }
+            $role_id = $role->id;
+        } else {
+            $role_id = $user->role_id;
         }
-
-        $user->update($request->only(['nom', 'prenom', 'login', 'role_id']));
-
+    
+        // Mettre à jour les informations de l'utilisateur
+        $user->update([
+            'nom' => $validated['nom'] ?? $user->nom,
+            'prenom' => $validated['prenom'] ?? $user->prenom,
+            'login' => $validated['login'] ?? $user->login,
+            'role_id' => $role_id,
+        ]);
+    
+        // Mettre à jour le mot de passe si fourni
         if ($request->filled('password')) {
             $user->password = Hash::make($validated['password']);
             $user->save();
         }
-
-        return $this->successResponse($user, 'User updated successfully', 201);
+    
+        // Retourner une réponse de succès
+        return $this->sendResponse($user, StateEnums::SUCCESS, 'Utilisateur mis à jour avec succès.', 200);
     }
+    
+    
     public function filterUsersByRole(Request $request)
     {
         $role = $request->query('role');
@@ -214,12 +245,43 @@ class UserController extends Controller
     }
 
 
-
-
     public function destroy(User $user)
     {
+        // Supprimer l'utilisateur
         $user->delete();
-
-        return $this->successResponse(null, 'User deleted successfully');
+    
+        // Retourner une réponse de succès en utilisant sendResponse
+        return $this->sendResponse(null, StateEnums::SUCCESS, 'User deleted successfully', 200);
     }
+    
+
+
+    public function show($id)
+{
+    // Rechercher l'utilisateur par ID
+    $user = User::find($id);
+
+    // Vérifiez si l'utilisateur existe
+    if (!$user) {
+        return response()->json(['message' => 'Utilisateur non trouvé.'], 404);
+    }
+
+    // Retourner les détails de l'utilisateur
+    return response()->json($user);
+}
+
+public function index(Request $request)
+{
+    // Récupérer les utilisateurs avec pagination
+    $users = User::paginate(5);
+
+    // Déboguer les utilisateurs paginés
+    Log::info('Users:', $users->toArray());
+
+    // Retourner les utilisateurs avec pagination
+    return response()->json($users);
+}
+
+
+
 }

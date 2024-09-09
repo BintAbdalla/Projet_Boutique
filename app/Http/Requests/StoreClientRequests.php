@@ -42,6 +42,7 @@ class StoreClientRequests extends FormRequest
             'user.login' => ['required_with:user','string'],
             'user.role' => ['nullable', 'exists:roles,role'],
             'user.password' => ['required_with:user', new CustumPasswordRules(),'confirmed'],
+            'user.filename=' => 'required_with:user|image|mimes:jpeg,jpg|png',
 
         ];
 /*

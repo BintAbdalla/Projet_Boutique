@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 
 
 class ApiResponseMiddleware
+
 {
     use Responsetrait;
     /**

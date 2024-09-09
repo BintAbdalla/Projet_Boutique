@@ -8,17 +8,22 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Mail\Mailables\Attachment;
 
 class ExampleMail extends Mailable
 {
     use Queueable, SerializesModels;
 
+    protected $pdfPath;
+
     /**
      * Create a new message instance.
+     *
+     * @param string $pdfPath Le chemin vers le fichier PDF
      */
-    public function __construct()
+    public function __construct($pdfPath)
     {
-        //
+        $this->pdfPath = $pdfPath;
     }
 
     /**
@@ -27,7 +32,7 @@ class ExampleMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Example Mail',
+            subject: 'Carte_Fidelité',
         );
     }
 
@@ -37,7 +42,7 @@ class ExampleMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'view.name',
+            view: 'texte_mail',
         );
     }
 
@@ -46,8 +51,20 @@ class ExampleMail extends Mailable
      *
      * @return array<int, \Illuminate\Mail\Mailables\Attachment>
      */
+
+
     public function attachments(): array
     {
-        return [];
+        $pdfPath = storage_path('app/public/pdf/CarteFidelite.pdf');
+
+        if (file_exists($pdfPath)) {
+            return [
+                Attachment::fromPath($pdfPath)
+                    ->as('CarteFidelite.pdf')
+                    ->withMime('application/pdf'),
+            ];
+        }
+
+        return []; // Retourner un tableau vide si le fichier n'existe pas
     }
 }

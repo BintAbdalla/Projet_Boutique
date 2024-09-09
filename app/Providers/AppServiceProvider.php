@@ -15,6 +15,9 @@ use App\Services\ClientServiceImpl;
 use App\Services\UploadService;
 use App\Services\CloudUploadService;
 use App\Services\MailService;
+use App\Services\QrCodeService;
+
+
 
 
 
@@ -31,6 +34,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(ArticleRepository::class, EloquentArticleRepository::class);
         $this->app->bind(ClientService::class, ClientServiceImpl::class);
         $this->app->bind(ClientRepository::class, EloquentClientRepository::class);
+        // $this->app->bind(QrCodeService::class, EloquentClientRepository::class);
+
+
 
         $this->app->singleton(UploadService::class, function ($app) {
             return new UploadService();
@@ -43,6 +49,11 @@ class AppServiceProvider extends ServiceProvider
         // Enregistrer le service
         $this->app->singleton('mailservice', function ($app) {
             return new MailService();
+        });
+
+           // Enregistrer le service
+           $this->app->singleton('qrCodeService', function ($app) {
+            return new QrCodeService();
         });
     }
 
