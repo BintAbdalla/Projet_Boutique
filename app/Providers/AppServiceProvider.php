@@ -16,8 +16,10 @@ use App\Services\UploadService;
 use App\Services\CloudUploadService;
 use App\Services\MailService;
 use App\Services\QrCodeService;
-
-
+use App\Services\DetteService;
+use App\Services\DetteServiceImpl;
+use App\Repository\DetteRepository;
+use App\Repository\EloquentDetteRepository;
 
 
 
@@ -34,6 +36,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(ArticleRepository::class, EloquentArticleRepository::class);
         $this->app->bind(ClientService::class, ClientServiceImpl::class);
         $this->app->bind(ClientRepository::class, EloquentClientRepository::class);
+        $this->app->bind(DetteRepository::class, EloquentDetteRepository::class);
+        $this->app->bind(DetteService::class, DetteServiceImpl::class);
         // $this->app->bind(QrCodeService::class, EloquentClientRepository::class);
 
 

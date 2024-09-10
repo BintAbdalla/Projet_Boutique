@@ -9,6 +9,9 @@ interface ArticleRepository
 
     public function find($id);
 
+
+    
+
     public function update($id, array $data);
 
     public function delete($id);

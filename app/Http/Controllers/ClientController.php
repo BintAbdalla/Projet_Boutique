@@ -47,8 +47,8 @@ class ClientController extends Controller
     protected $qrCodeService;
     protected $carteFidelitéServices;
 
-protected $mail;
-    public function __construct(ClientService $clientService, ExceptionService $exceptionService, QrCodeService $qrCodeService, carteFidelitéServices $carteFidelitéServices ,MailService $mailService)
+    protected $mail;
+    public function __construct(ClientService $clientService, ExceptionService $exceptionService, QrCodeService $qrCodeService, carteFidelitéServices $carteFidelitéServices, MailService $mailService)
     {
         $this->clientService = $clientService;
         $this->exceptionService = $exceptionService;
@@ -67,7 +67,6 @@ protected $mail;
 
             // Création du client via le service
             $client = $this->clientService->store($clientData, $userData);
-
         } catch (Exception $e) {
             // Utiliser le service d'exception pour gérer l'erreur
             $formattedError = $this->exceptionService->handleException($e);
@@ -80,10 +79,35 @@ protected $mail;
         }
     }
 
-
-
-
-
+    
+        public function index(Request $request)
+        {
+            try {
+                // Récupérer les filtres depuis la requête
+                $filters = $request->only(['surname', 'id', 'user_id']); // Extraire les filtres de la requête
+                
+                // Vérifier si un paramètre 'include' est fourni
+                $include = $request->has('include') ? explode(',', $request->input('include')) : [];
+                
+                // Inclusions autorisées
+                $allowedIncludes = ['user'];
+                $include = array_intersect($include, $allowedIncludes); // Filtrer les inclusions non autorisées
+                
+                // Récupérer les clients via le service avec les filtres et les inclusions
+                $clients = $this->clientService->index($include, $filters);
+                // dd($clients);
+        
+                // Retourner une réponse formatée
+                return $this->sendResponse($clients, StateEnums::SUCCESS, 'Clients récupérés avec succès');
+            } catch (ExceptionService $e) {
+                // Gestion des exceptions via le service dédié
+                $formattedError = [
+                    'error' => $this->exceptionService->handleException($e),
+                ];
+        
+                return $this->sendResponse($formattedError, StateEnums::ECHEC, 'Une erreur est survenue', 500);
+            }
+        }
 
     public function filterByTelephone(Request $request)
     {
@@ -97,19 +121,20 @@ protected $mail;
         }
     }
 
-
-
     public function show($id, Request $request)
     {
         try {
+            // Appeler le service pour obtenir le client par ID
             $client = $this->clientService->show($id);
+    
+            // Retourner une réponse formatée
             return $this->sendResponse($client, StateEnums::SUCCESS, 'Client récupéré avec succès.');
-        } catch (ExceptionService $e) {
-            return $this->sendResponse(['error' => $e->getMessage()], StateEnums::ECHEC, 'error', $e->getCode());
+        } catch (Exception $e) {
+            // Retourner une réponse d'erreur formatée
+            return $this->sendResponse(['error' => $e->getMessage()], StateEnums::ECHEC, 'Une erreur est survenue.', $e->getCode());
         }
     }
-
-
+    
 
     public function getUserForClient($id)
     {
@@ -120,7 +145,6 @@ protected $mail;
             return $this->sendResponse(['error' => $e->getMessage()], $e->getCode());
         }
     }
-
     public function getDettes(Request $request, $id)
     {
         try {
@@ -130,48 +154,5 @@ protected $mail;
             return $this->sendResponse(['error' => $e->getMessage()], StateEnums::ECHEC, $e->getCode());
         }
     }
-
-    public function index(Request $request)
-    {
-        try {
-            $include = $request->has('include') ? [$request->input('include')] : [];
-            $clients = $this->clientService->index($include);
-
-            // Retourner une réponse qui sera formatée par le middleware
-            return $this->sendResponse($clients, StateEnums::SUCCESS, 'Clients récupérés avec succès');
-        } catch (ExceptionService $e) {
-            // Retourner une réponse d'erreur qui sera formatée par le middleware
-            $formattedError = [
-                'error' => $this->exceptionService->handleException($e),
-            ];
-
-            // Retourner une réponse qui sera formatée par le middleware
-            return $this->sendResponse($formattedError, StateEnums::ECHEC, 'Une erreur est survenue', 500);
-        }
-    }
-    // public function generateAndSaveQRCode($clientId)
-    // {
-    //     // Trouver le client par son ID
-    //     $client = Client::findOrFail($clientId);
-
-    //     // Générer un QR code avec le numéro de téléphone du client en utilisant le service
-    //     $qrCode = $this->qrCodeService->generateQrCodeForPhoneNumber($client->telephone);
-
-    //     // Sauvegarder le QR code dans la colonne 'qr_code' de la base de données
-    //     $client->qr_code = base64_encode($qrCode);
-    //     $client->save();
-
-    //     return view('clients.qrcode', ['qrCode' => $qrCode]);
-    // }
-
-    // public function showQRCode($clientId)
-    // {
-    //     // Trouver le client par son ID
-    //     $client = Client::findOrFail($clientId);
-
-    //     // Récupérer le QR code depuis la base de données
-    //     $qrCode = base64_decode($client->qr_code);
-
-    //     return view('clients.qrcode', ['qrCode' => $qrCode]);
-    // }
+    
 }

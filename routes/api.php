@@ -56,15 +56,16 @@ Route::prefix('v1/users')->middleware('auth:api')->group(function () {
 Route::prefix('v1/clients')->middleware('auth:api')->group(function () {
 // Route pour créer un nouveau client
 Route::post('/', [ClientController::class, 'store'])->name('clients.store');
-    Route::post('/{id}/generate-qrcode', [ClientController::class, 'generateAndSaveQRCode']);
-    Route::get('/{id}/qrcode', [ClientController::class, 'showQRCode']);
     // Route pour obtenir tous les clients
     Route::get('/', [ClientController::class, 'index'])->name('clients.index');
     
+    Route::post('/telephone', [ClientController::class, 'filterByTelephone']);
     // Route pour obtenir un client spécifique par ID
     Route::get('/{id}', [ClientController::class, 'show'])->name('clients.show');
     
+    Route::post('/{id}/user', [ClientController::class, 'getUserForClient'])->name('clients.user');
     
+    Route::post('/{id}/dettes', [ClientController::class, 'getDettes'])->name('clients.dettes');
     // Route pour mettre à jour un client spécifique par ID (PUT ou PATCH)
     Route::match(['put', 'patch'], '/{id}', [ClientController::class, 'update'])->name('clients.update');
     
@@ -73,9 +74,6 @@ Route::post('/', [ClientController::class, 'store'])->name('clients.store');
     // Route pour créer un utilisateur associé à un client existant
     // Route::post('/{Id}/users', [UserController::class, 'createUserForClient']);
     
-    Route::post('/telephone', [ClientController::class, 'filterByTelephone']);
-    Route::post('/{id}/dettes', [ClientController::class, 'getDettes'])->name('clients.dettes');
-    Route::post('/{id}/user', [ClientController::class, 'getUserForClient'])->name('clients.user');
 });
 
 Route::prefix('v1/articles')->middleware('auth:api')->group(function () {
@@ -102,4 +100,23 @@ Route::prefix('v1/articles')->middleware('auth:api')->group(function () {
 
     // // Route pour supprimer un article spécifique par ID
     Route::delete('/{id}', [ArticleController::class, 'destroy'])->name('articles.destroy');
+
+});
+
+
+Route::prefix('v1/dettes')->middleware('auth:api')->group(function () {
+    // Route pour créer une nouvelle dette
+    Route::post('/', [DetteController::class,'create'])->name('dettes.create');
+
+    // Route pour obtenir tous les dettes
+    Route::get('/', [DetteController::class, 'index'])->name('dettes.index');
+
+    // Route pour obtenir une dette spécifique par ID
+    Route::get('/{id}', [DetteController::class,'show'])->name('dettes.show');
+
+    // Route pour mettre à jour une dette spécifique par ID
+    Route::patch('/{id}', [DetteController::class, 'update'])->name('dettes.update');
+
+    // Route pour supprimer une dette spécifique par ID
+    Route::delete('/{id}', [DetteController::class, 'destroy'])->name('dettes.destroy');
 });

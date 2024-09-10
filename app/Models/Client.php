@@ -40,5 +40,9 @@ class Client extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    public function dettes(){
+        return $this->hasMany(Dettes::class);
+    }
+
   
 }

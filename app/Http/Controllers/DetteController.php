@@ -1,31 +1,39 @@
 <?php
 
+
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Dettes;
+use App\Services\DetteService;
+use App\Http\Requests\StoreDetteRequests; // Utilisation du request de validation
+use App\Exceptions\ExceptionServiceDettes; // Exception personnalisée
 
 class DetteController extends Controller
 {
-    /**
-     * Récupère les dettes pour un client spécifique sans détails supplémentaires.
-     */
-    public function getDettesForClient($client_id)
+    protected $detteService;
+
+    // Injection du service DetteService via le constructeur
+    public function __construct(DetteService $detteService)
     {
-        // Récupérer uniquement les dettes du client sans inclure les relations
-        $dettes = Dettes::where('client_id', $client_id)->get();
-
-        // Vérifiez si des dettes existent pour le client
-        if ($dettes->isEmpty()) {
-            return response()->json([
-                'message' => 'Aucune dette trouvée pour ce client.'
-            ], 404);
-        }
-
-        // Retourner les dettes sans détails supplémentaires dans une réponse JSON
-        return response()->json([
-            'client_id' => $client_id,
-            'dettes' => $dettes
-        ], 200);
+        $this->detteService = $detteService;
     }
+
+    public function create(StoreDetteRequests $request)
+
+    {
+        try {
+            // On délègue la logique métier au service
+            $result = $this->detteService->create($request->validated());
+
+            return response()->json([
+                'success' => $result['validated_articles'],
+                'errors' => $result['errors']
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Échec de l\'enregistrement de la dette',
+                'details' => $e->getMessage()
+            ], 500);
+        }
+}
+
 }

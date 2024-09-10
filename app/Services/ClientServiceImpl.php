@@ -21,6 +21,7 @@ use Barryvdh\DomPDF\Facade\Pdf; // Assurez-vous d'inclure ce namespace
 use App\Mail\ExampleMail;
 use App\Services\MailService;
 use App\Jobs\EmailJob;
+use App\Exceptions\ExceptionService;
 
 
 
@@ -48,33 +49,33 @@ class ClientServiceImpl implements ClientService
     {
         try {
             DB::beginTransaction();
-            
+
             // Création du client
             $client = Client::create($clientData);
-            
+
             if ($userData) {
                 // Vérifier que 'users' existe dans $userData
                 if (!isset($userData['users'])) {
                     throw new Exception('Les données utilisateur sont manquantes.');
                 }
-                
+
                 $userData = $userData['users'];
-                
+
                 // Définir le rôle de l'utilisateur
                 $userData['role'] = $userData['role'] ?? 'client';
                 $roledefault = Role::where("role", $userData['role'])->first();
                 if (!$roledefault) {
                     throw new Exception('Role not found: ' . $userData['role']);
                 }
-                
+
                 $cloudUploadService = new CloudUploadService();
                 $filenameUrl = null;
-                
+
                 // Vérifier si 'filename' est bien un fichier
                 if (isset($userData['filename']) && $userData['filename'] instanceof UploadedFile) {
                     $filenameUrl = $cloudUploadService->uploadAndGetUrl($userData['filename']);
                 }
-                
+
                 $user = User::create([
                     'nom' => $userData['nom'] ?? '',
                     'prenom' => $userData['prenom'] ?? '',
@@ -83,34 +84,44 @@ class ClientServiceImpl implements ClientService
                     'role_id' => $roledefault->id,
                     'filename' => $filenameUrl,
                 ]);
-                
+
                 // Associer le client à l'utilisateur
                 $client->update(['user_id' => $user->id]);
                 $client->save();
-                
+
                 // Génération du QR code
                 $qrCodePath = 'qrcodes/' . $client->surname . '_' . $client->id . '.png';
                 $this->qrcode->generateQRCode(json_encode($client), $qrCodePath);
-        
+
                 // Génération de la carte de fidélité
                 $fidelityCardPath = $this->card->generateFidelityCardForClient($client, $qrCodePath, $filenameUrl);
-        
+
                 // Dispatcher le job pour envoyer l'email
                 dispatch(new EmailJob($user, $fidelityCardPath));
             }
-    
+
             DB::commit();
             return $client;
-    
         } catch (Exception $e) {
             DB::rollBack();
             throw $e;
         }
     }
-    
 
 
-    public function find($id) {}
+
+    public function find($id)
+    { {
+            try {
+                // Récupérer tous les clients
+                $clients = Client::all();
+
+                return $clients;
+            } catch (Exception $e) {
+                throw new Exception('Erreur lors de la récupération des clients : ' . $e->getMessage());
+            }
+        }
+    }
 
     public function update($id, array $data) {}
 
@@ -151,14 +162,24 @@ class ClientServiceImpl implements ClientService
     }
     public function show($id)
     {
+        // Valider l'ID pour s'assurer qu'il est un entier positif
+        if (!is_numeric($id) || $id <= 0) {
+            throw new Exception('ID invalide.', 400);
+        }
+
+        // Récupérer le client par ID
         $client = Client::find($id);
 
+        // Vérifier si le client a été trouvé
         if (!$client) {
             throw new Exception('Client non trouvé.', 404);
         }
 
+        // Retourner les détails du client
         return $client;
     }
+
+
 
     public function getUserForClient($id)
     {
@@ -182,38 +203,25 @@ class ClientServiceImpl implements ClientService
     }
 
 
-    protected function generateQRCodeForClient(Client $client): string
+    public function index(array $include = [], array $filters = [])
     {
-        // $user = $client->user;
-        $qrContent = "ID Client: " . $client->id . "\n" .   // Ajout de l'ID du client
-            //  "Nom: " . ($user->nom ?? 'N/A') . "\n" .
-            //  "Prénom: " . ($user->prenom ?? 'N/A') . "\n" .
-            "Téléphone: " . ($client->telephone ?? 'N/A') . "\n" .
-            "Surnom: " . ($client->surnom ?? 'N/A');
-
-        // Définir le chemin du fichier QR code
-        $qrcodepath = 'qrcodes/clients_' . $client->id . '.png';
-
-        // Appeler le service pour générer le QR code
-        $this->qrcode->generateQRCode($qrContent, $qrcodepath);
-
-        return $qrcodepath; // Retourner le chemin du QR code
-    }
-    public function index(array $include = [])
-    {
-
-
         try {
-            // Utiliser QueryBuilder pour appliquer les filtres et les inclusions
+            // Construire la requête avec QueryBuilder
             $query = QueryBuilder::for(Client::class)
-                ->allowedFilters(['surname'])
-                ->allowedIncludes(['user'])
-                ->with($include)  // Inclure les relations spécifiées
-                ->whereNotNull('user_id');  // Appliquer le filtre `whereNotNull`
+                ->allowedFilters(['surname', 'id', 'user_id']) // Ajouter les filtres autorisés
+                ->allowedIncludes(['user'])  // Relations à inclure
+                ->with($include)             // Inclure les relations spécifiées
+                ->whereNotNull('user_id');  // Filtrer sur `user_id`
 
+            // Appliquer les filtres spécifiés
+            foreach ($filters as $filter => $value) {
+                $query->where($filter, $value);
+            }
+
+            // Récupérer les clients
             return $query->get();
         } catch (Exception $e) {
-            throw new Exception($e->getMessage());
+            throw new ExceptionService($e->getMessage());
         }
     }
 }
