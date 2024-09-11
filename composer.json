@@ -13,12 +13,15 @@
         "dompdf/dompdf": "^3.0",
         "endroid/qr-code": "^5.0",
         "guzzlehttp/guzzle": "^7.2",
+        "infobip/infobip-api-php-client": "^5.1",
         "laravel/framework": "^10.10",
         "laravel/passport": "^12.3",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
+        "pear/http_request2": "^2.6",
         "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/laravel-query-builder": "^5.7",
+        "twilio/sdk": "^8.3",
         "tymon/jwt-auth": "^2.1"
     },
     "require-dev": {

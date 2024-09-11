@@ -79,6 +79,7 @@ class UserController extends Controller
         }
     
         // Retourner l'utilisateur créé
+        
         return response()->json($user, 201);
     }
     

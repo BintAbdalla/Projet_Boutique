@@ -30,6 +30,8 @@ class DetteServiceImpl implements DetteService
      * @param array $data Les données de la dette à créer.
      * @return mixed
      */
+
+
     public function create(array $data): array
     {
         DB::beginTransaction(); // Démarrer une transaction pour garantir l'intégrité des données
@@ -70,7 +72,6 @@ class DetteServiceImpl implements DetteService
                 $dette->montantRestant, // Propriété transitoire
                 $dette->montantVerser   // Propriété transitoire
             );
-
         } catch (Exception $e) {
             DB::rollBack(); // Annuler la transaction en cas d'erreur
             throw new Exception('Erreur lors de la création de la dette : ' . $e->getMessage());
@@ -165,8 +166,6 @@ class DetteServiceImpl implements DetteService
             'errors' => $errors
         ];
     }
-    
-
 
     /**
      * Liste toutes les dettes de tous les clients.
@@ -175,7 +174,9 @@ class DetteServiceImpl implements DetteService
      */
     public function listAll()
     {
-        return $this->detteRepository->listAll();
+        $dettes = Dettes::all();
+        // dd($dettes); // Affiche les données pour déboguer
+        return $dettes;
     }
 
     /**
@@ -184,9 +185,14 @@ class DetteServiceImpl implements DetteService
      * @param int $clientId L'ID du client.
      * @return mixed
      */
+    // App/Services/DetteService.php
     public function listByClientId(int $clientId)
     {
-        return $this->detteRepository->listByClientId($clientId);
+        $dettes = $this->detteRepository->listByClientId($clientId);
+
+        // Ajouter un log pour vérifier les données retournées
+
+        return $dettes;
     }
 
     /**
@@ -210,16 +216,37 @@ class DetteServiceImpl implements DetteService
      */
     public function listByEtat(string $etat)
     {
-        if ($etat === 'soldee') {
-            return $this->detteRepository->listByEtat('soldee');
+        // Assurez-vous que cette méthode retourne une collection valide
+        $dettes = $this->detteRepository->listByEtat($etat);
+
+        if (is_null($dettes)) {
+            return collect(); // Retourne une collection vide si $dettes est null
         }
 
-        if ($etat === 'non_soldée') {
-            return $this->detteRepository->listByEtat('non_soldée');
+        return $dettes;
+    }
+
+    public function getDettes($solde = null)
+    {
+        // Requête de base pour récupérer les dettes avec les relations nécessaires
+        $query = Dettes::query()->with('articles', 'paiements');
+
+        // Exécuter la requête et récupérer les dettes
+        $dettes = $query->get();
+
+        if ($solde === 'soldee') {
+            // Filter par montantRestant
+            $dettes = $dettes->filter(function ($dette) {
+                return $dette->montantRestant == 0;
+            });
+        } elseif ($solde === 'non_soldée') {
+            // Filter par montantRestant
+            $dettes = $dettes->filter(function ($dette) {
+                return $dette->montantRestant > 0;
+            });
         }
 
-        // Vous pouvez lancer une exception ou retourner une réponse vide si l'état est invalide.
-        throw new \InvalidArgumentException("L'état des dettes fourni est invalide.");
+        return $dettes;
     }
 
     public function find($id) {}
@@ -306,5 +333,95 @@ class DetteServiceImpl implements DetteService
     function update($id, array $data)
     {
         $this->detteRepository->update($id, $data);
+    }
+    public function getDetteById($clientId)
+    {
+        // Requête pour récupérer les dettes du client avec les relations articles et paiements
+        $dettes = Dettes::where('client_id', $clientId)
+            ->with('articles', 'paiements') // Chargement des relations
+            ->get();
+
+        // Retourner les dettes du client
+        return $dettes;
+    }
+
+    // Méthode pour récupérer les détails d'une dette spécifique avec un article par son libellé
+    public function getDetteDetailsByLibelle($detteId, $articleLibelle)
+    {
+        // Requête pour récupérer la dette par son ID et filtrer les articles par leur libellé
+        $dette = Dettes::where('id', $detteId)
+            ->with(['articles' => function ($query) use ($articleLibelle) {
+                // Filtrer par le libellé de l'article
+                $query->where('libelle', $articleLibelle);
+            }, 'paiements'])
+            ->first();
+
+        // Retourner la dette avec ses articles filtrés par libellé et paiements
+        return $dette;
+    }
+
+    public function getDetteByPaiement($detteId)
+    {
+        // Rechercher la dette avec ses paiements
+        $dette = Dettes::with('paiements')->find($detteId);
+
+        // Vérifier si la dette existe
+        if (!$dette) {
+            return null;
+        }
+
+        return $dette;
+    }
+
+    public function findDetteById($detteId) {}
+    public function ajouterPaiement($detteId, $montant)
+    {
+        // Trouver la dette
+        $dette = Dettes::find($detteId);
+
+        if (!$dette) {
+            // Retourner une erreur si la dette n'est pas trouvée
+            return [
+                'status' => 'error',
+                'message' => 'Dette non trouvée',
+                'data' => null
+            ];
+        }
+
+        // Calculer le montant restant à partir des paiements existants
+        $montantRestant = $dette->montant - $dette->paiements()->sum('montant');
+
+        // Vérifier si le montant est valide
+        if ($montant <= 0 || $montant > $montantRestant) {
+            return [
+                'status' => 'error',
+                'message' => 'Le montant est invalide',
+                'data' => null
+            ];
+        }
+
+        // Ajouter le paiement
+        Paiement::create([
+            'dette_id' => $detteId,
+            'montant' => $montant,
+            'date_paiement' => now(),
+        ]);
+
+        // Mettre à jour le montant de la dette
+        $nouveauMontant = $dette->montant - $montant;
+        $dette->montant = $nouveauMontant;
+        $dette->save();
+
+        // Rafraîchir les données de la dette
+        $dette->refresh();
+
+        return [
+            'status' => 'success',
+            'message' => 'Paiement effectué avec succès',
+            'data' => [
+                'dette' => $dette,
+                'paiements' => $dette->paiements
+            ]
+        ];
     }
 }

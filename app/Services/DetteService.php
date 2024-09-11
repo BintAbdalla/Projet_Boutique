@@ -52,6 +52,17 @@ interface DetteService
     public function addPayment(int $detteId, float $paymentAmount);
     public function update($id, array $data);
 
+    public function getDettes($solde = null);
+
+    public function getDetteById($clientId);
+  public function  getDetteDetailsByLibelle($detteId, $articleLibelle);
+
+  public function getDetteByPaiement($detteId);
+
+
+  public function ajouterPaiement($detteId, $montant);
+
+  public function findDetteById($detteId);
 
 
 

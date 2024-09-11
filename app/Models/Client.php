@@ -10,26 +10,23 @@ class Client extends Model
 {
     use HasFactory;
 
-    // Attributs que vous pouvez massivement assigner
     protected $fillable = [
-        'surname', 'telephone', 'adresse','user_id','qr_code'
+        'surname', 'telephone', 'adresse', 'user_id', 'qr_code'
     ];
 
-    // Attributs cachés (non retournés par les méthodes toArray() et toJson())
     protected $hidden = [
-        // Exemple : 'password' si vous aviez un mot de passe dans le modèle
+        // Champs cachés, si nécessaire
     ];
 
-    // Cast des attributs
     protected $casts = [
-         'created_at' => 'datetime',
-         'updated_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
-    // Attributs non assignables en masse
     protected $guarded = [
-        // Exemple : 'id' ou d'autres attributs que vous ne voulez pas assigner massivement
+        // Attributs protégés contre l'assignation massive
     ];
+
     protected static function booted()
     {
         static::addGlobalScope(new TelephoneScope);
@@ -40,9 +37,8 @@ class Client extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function dettes(){
-        return $this->hasMany(Dettes::class);
+    public function dettes()
+    {
+        return $this->hasMany(Dettes::class, 'client_id');
     }
-
-  
 }

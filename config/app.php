@@ -160,6 +160,7 @@ return [
         Laravel\Passport\PassportServiceProvider::class,
         CloudinaryLabs\CloudinaryLaravel\CloudinaryServiceProvider::class,
         Barryvdh\DomPDF\ServiceProvider::class,
+        App\Providers\SmsServiceProvider::class,
 
         /*
          * Package Service Providers...

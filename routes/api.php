@@ -109,10 +109,29 @@ Route::prefix('v1/dettes')->middleware('auth:api')->group(function () {
     Route::post('/', [DetteController::class,'create'])->name('dettes.create');
 
     // Route pour obtenir tous les dettes
-    Route::get('/', [DetteController::class, 'index'])->name('dettes.index');
+    Route::get('/', [DetteController::class, 'listAll'])->name('dettes.listAll');
 
     // Route pour obtenir une dette spécifique par ID
-    Route::get('/{id}', [DetteController::class,'show'])->name('dettes.show');
+    Route::get('/{id}', [DetteController::class,'listByClientId'])->name('dettes.listByClientId');
+
+    // Route pour obtenir une dette solde ou non Soldee
+    Route::get('/', [DetteController::class,'listByStatus'])->name('dettes.listByStatus');
+
+    // Route pour obtenir une dette par date de création
+    Route::get('/', [DetteController::class,'getEtat'])->name('dettes.getEtat');
+    
+    Route::get('/{id}', [DetteController::class, 'getDetteById'])->name('dettes.getDetteById');
+
+    Route::get('/{id}/article/{libelle}', [DetteController::class, 'getDetteDetailsByLibelle'])->name('dettes.getDetteDetailsByLibelle');
+
+   
+
+Route::post('/{id}/paiements', [DetteController::class, 'listPaiementsByDette'])->name('dettes.listPaiementsByDette');
+     
+    // Route pour payer une dette spécifique par ID
+
+    Route::post('/{id}/paiements', [DetteController::class, 'ajouterPaiement'])->name('dettes.ajouterPaiement');
+
 
     // Route pour mettre à jour une dette spécifique par ID
     Route::patch('/{id}', [DetteController::class, 'update'])->name('dettes.update');

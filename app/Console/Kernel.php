@@ -6,6 +6,7 @@ use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use  App\Jobs\RetryCloudUploadJob;
 
+
 class Kernel extends ConsoleKernel
 {
     /**
@@ -15,6 +16,11 @@ class Kernel extends ConsoleKernel
     {
         // Exécuter le job de relance toutes les 30 minutes
         $schedule->job(new RetryCloudUploadJob())->everyThirtyMinutes();
+
+        // Ajoutez ici les tâches programmées pour votre application
+        // Exemple:
+        //  $schedule->command('inspire')->hourly();
+
     }
     
 
@@ -27,4 +33,9 @@ class Kernel extends ConsoleKernel
 
         require base_path('routes/console.php');
     }
+
+    protected $commands = [
+        \App\Console\Commands\EssaieCommand::class,
+    ];
+    
 }
